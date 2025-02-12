@@ -1,0 +1,363 @@
+{% extends 'boards/base.html' %}
+
+{% block title %}{{ pin.title }}{% endblock %}
+
+{% block css %}
+<style>
+    body {
+        position: relative;
+    }
+    .pin-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        max-width: 600px;
+        margin: 20px auto;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        background-color: wheat;
+    }
+
+    .pin-image-container {
+        flex: 1;
+        padding: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .pin-image { 
+        width: 100%;
+        max-width: 400px; /* Adjust image width */
+        height: auto;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .pin-details-container {
+        flex: 1;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .pin-title {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 1px;
+    }
+
+    .pin-description {
+        font-size: 1.1rem;
+        color: #555;
+        margin-bottom: 15px;
+        line-height: 1.5;
+    }
+
+    .pin-meta {
+        font-size: 0.9rem;
+        color: #777;
+    }
+
+    .pin-meta a {
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    .pin-meta a:hover {
+        text-decoration: underline;
+    }
+
+    .back-btn {
+        background-color: #007bff;
+        color: white;
+        position: sticky;
+        padding: 10px 20px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-weight: bold;
+        margin-top: 20px;
+        margin-left: 5px;
+        background-color: black;
+        color: white;
+    }
+
+    .back-btn:hover {
+        background-color: #0056b3;
+    }
+
+    /* Updated CSS for masonry layout */
+   .masonry {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Automatically adjust columns */
+    gap: 18px; /* Space between columns */
+    }
+
+   .masonry-item {
+    display: block; /* Ensure items are block-level */
+    width: 100%; /* Ensure items fill the container */
+   }
+
+   .masonry-item img {
+    width: 100%; /* Ensure images fill their container */
+    border-radius: 8px;
+    display: block;
+    object-fit: cover; /* Maintain aspect ratio */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    }
+
+    .masonry-item img:hover {
+    transform: scale(1.05); /* Hover effect */
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3); /* Add a stronger shadow on hover */
+    }
+
+
+    
+    
+    .like-btn, .save-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 1.5rem;
+        transition: transform 0.2s ease, color 0.3s ease;
+        background-color: transparent;
+    }
+    
+    .like-btn {
+        color: #aaa;
+    }
+    
+    .like-btn.liked {
+        color: red;
+        transform: scale(1.2);
+    }
+    
+    
+    .save-btn {
+        display: inline-block;
+        background-color: #e60023;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+    
+    .save-btn:hover {
+        background-color: #ad0018;
+        transform: scale(1.05);
+    }
+
+    .button-container {
+        display: flex;
+        align-items: center;
+        gap: 20px; /* Space between buttons */
+        margin-top: 15px; /* Space from pin details */
+    }
+    
+    .like-btn span {
+        font-size: 1rem;
+        margin-left: 8px; /* Space between the heart icon and count */
+        color: #555;
+        font-weight: bold;
+    }
+    
+    .save-btn {
+        margin-left: auto; /* Push the Save button to the right */
+    }
+    
+    
+
+    /* Responsive layout */
+    @media (max-width: 1200px) {
+        .masonry {
+            column-count: 3; /* 3 columns for tablets */
+        }
+    }
+
+    @media (max-width: 768px) {
+        .masonry {
+            column-count: 2; /* 2 columns for phones */
+        }
+    }
+
+    @media (max-width: 576px) {
+        .masonry {
+            column-count: 2; /* Smaller phones also get 2 columns */
+        }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="mt-3">
+    <a href="/boards/" class="back-btn"><i class="fa-solid fa-circle-arrow-left"></i></a>
+</div>
+<div class="container mt-5">
+    <div class="pin-container">
+        <!-- Left side: Pin Image -->
+        <div class="pin-image-container">
+            <img src="{{ pin.image.url }}" alt="{{ pin.title }}" class="pin-image">
+        </div>
+
+        <!-- Right side: Pin Details -->
+        <div class="pin-details-container">
+            <h1 class="pin-title">{{ pin.title }}</h1>
+            <p class="pin-description">{{ pin.desc }}</p>
+            
+            <div class="pin-meta">
+                <p><strong>Category:</strong> {{ pin.category }}</p>
+                <p><strong>Posted on:</strong> {{ pin.pub_date|date:"F j, Y" }}</p>
+                <p><strong>Posted by:</strong> 
+                    <a href="{% url 'user-profile' username=pin.author.username %}">
+                        <strong>{{ pin.author.username }}</strong>
+                    </a>
+                </p>
+            </div>
+        
+            <!-- Like and Save Buttons -->
+            <div class="button-container">
+                <!-- Like Button -->
+                <button class="like-btn {% if is_liked %}liked{% endif %}" data-image-id="{{ pin.image_id }}">
+                    <i class="fa-solid fa-heart"></i>
+                    <span id="like-count-{{ pin.image_id }}">{{ pin.like_count }}</span>
+                </button>
+                
+                
+            
+                <!-- Save Button -->
+                <a class="save-btn" id="save-btn"  data-image-id="{{ pin.image_id }}">
+                   {% if is_saved %}
+                   Saved
+                   {% else %}
+                   Save
+                   {% endif %}
+                </a>
+            </div>
+            
+        </div>
+        
+        
+    </div>
+</div>
+
+<div class="container">
+    <div class="heading">
+        {% if related_pins %}
+        <h1 class="ml-5 mt-3">Related Pins</h1>
+        <div class="masonry">
+            {% for image1 in related_pins %}
+            <div class="masonry-item">
+                <!-- Wrap the image with a link to the pin detail page -->
+                <a href="{% url 'pin-view' image_id=image1.image_id %}">
+                    <img src="{{ image1.image.url }}" alt="Image" id="{{ image1.image_id }}">
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <h1 class="ml-5 mt-3">No Related Pins</h1>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.like-btn').forEach(button => {
+        button.addEventListener('click', function () {
+            
+           // if (!{{ user.is_authenticated|yesno:"true,false" }}) {
+            //    window.location.href = "{% url 'login-page' %}";
+             //   return;
+          //  }
+            
+            
+
+            const imageId = this.getAttribute('data-image-id');
+            fetch(`/boards/toggle-like/${imageId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => {
+                console.log(response.status); //
+                if (!response.ok) {
+                    return response.text().then(text => { 
+                        throw new Error(`Error: ${response.status} - ${text}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                const likeCountElement = document.getElementById(`like-count-${imageId}`);
+                likeCountElement.textContent = data.like_count;
+    
+                // toggling class when like btn os clicked
+                if (data.status === 'liked') {
+                    this.classList.add('liked');
+                } else if (data.status === 'disliked') {
+                    this.classList.remove('liked');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    });
+
+
+    document.querySelector('.save-btn').addEventListener('click', function(event) {
+        event.preventDefault();  // Prevent the default action of the <a> tag (navigating to the URL)
+    
+         // Check if the user is authenticated
+       // if (!{{ user.is_authenticated|yesno:"true,false" }}) {
+            // Redirect to the login page if the user is not authenticated
+        //    window.location.href = "{% url 'login-page' %}";
+        //    return;
+       // } 
+    
+        const image_id = document.querySelector('.save-btn').getAttribute('data-image-id');  // Get the image ID from the button
+        fetch(`/boards/save/${image_id}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ image_id: image_id })  // Send the image_id as part of the request body
+        })
+        .then(response => {
+            if (!response.ok) {
+                console.log('Error');
+                return;
+            }
+            return response.json();  // Parse the JSON response
+        })
+        .then(data => {
+            if (data.saved) {
+                document.querySelector('.save-btn').innerHTML = "Saved";  // Update button text to "Saved"
+            } else {
+                document.querySelector('.save-btn').innerHTML = "Save";  // Update button text to "Save"
+            }
+        })
+        .catch(error => {
+            console.log('Error:', error);  // Handle errors
+        });
+    });
+    
+    
+    
+</script>
+
+{% endblock %}
+

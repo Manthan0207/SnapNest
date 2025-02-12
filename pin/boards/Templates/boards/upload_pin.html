@@ -1,0 +1,178 @@
+{% extends 'boards/base.html' %}
+{% block title %}Upload Pin{% endblock %}
+{% block css %}
+<style>
+    body {
+        background-color: #f3f4f6;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .upload-container {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        padding: 40px;
+        max-width: 500px;
+        margin: 3rem auto;
+        text-align: center;
+        transition: 0.3s ease-in-out;
+    }
+
+    .upload-container:hover {
+        transform: scale(1.02);
+    }
+
+    .upload-container h2 {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+        text-align: left;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        font-size: 1rem;
+        color: #333;
+        display: block;
+        margin-bottom: 8px;
+    }
+
+    .upload-container input,
+    .upload-container textarea {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: 0.3s ease-in-out;
+        background: #f9f9f9;
+    }
+
+    .upload-container input:focus,
+    .upload-container textarea:focus {
+        outline: none;
+        border-color: #ff5a5f;
+        box-shadow: 0 0 8px rgba(255, 90, 95, 0.3);
+        background: #fff;
+    }
+
+    /* Drag & Drop Upload Box */
+    .image-upload-wrapper {
+        border: 2px dashed #ddd;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        background: #fafafa;
+        cursor: pointer;
+        transition: 0.3s ease-in-out;
+    }
+
+    .image-upload-wrapper:hover {
+        border-color: #ff5a5f;
+        background: rgba(255, 90, 95, 0.05);
+    }
+
+    .image-preview {
+        margin-top: 20px;
+        border-radius: 12px;
+        overflow: hidden;
+        display: none; /* Initially hidden */
+    }
+
+    .image-preview img {
+        width: 100%;
+        border-radius: 12px;
+        transition: transform 0.3s ease-in-out;
+    }
+
+    .image-preview img:hover {
+        transform: scale(1.05);
+    }
+
+    /* Button Styles */
+    .upload-container button {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(90deg, #ff5a5f, #ff3b3b);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .upload-container button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255, 90, 95, 0.3);
+    }
+
+    .upload-container button:active {
+        transform: translateY(0);
+    }
+
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="upload-container">
+        <h2>Upload a New Pin</h2>
+        <form method="POST" enctype="multipart/form-data" action="{% url 'upload_img' %}">
+            {% csrf_token %}
+
+            <!-- Drag & Drop File Upload -->
+            <div class="image-upload-wrapper" onclick="document.getElementById('pin_image').click()">
+                <p>📷 Drag & Drop or Click to Upload</p>
+                <input type="file" id="pin_image" name="pin_image" accept="image/*" required style="display: none;">
+            </div>
+
+            <!-- Pin Image Preview -->
+            <div class="image-preview" id="imagePreviewContainer">
+                <img id="imagePreview" src="#" alt="Image Preview" />
+            </div>
+
+            <!-- Pin Details -->
+            <div class="form-group">
+                <label for="img_title">Pin Title</label>
+                <input type="text" id="img_title" name="img_title" placeholder="Enter Pin Title" required>
+            </div>
+
+            <div class="form-group">
+                <label for="category">Category</label>
+                <input type="text" id="category" name="category" placeholder="Enter Pin Category" required>
+            </div>
+
+            <div class="form-group">
+                <label for="desc">Pin Description</label>
+                <textarea id="desc" name="desc" placeholder="Enter Pin Description" rows="4" required></textarea>
+            </div>
+
+            <button type="submit">Upload Pin</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Image Preview for Pin Image
+    document.getElementById('pin_image').addEventListener('change', function (event) {
+        const file = event.target.files[0]; //event.target.files returns files array
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const imagePreview = document.getElementById('imagePreview');
+                const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+                imagePreview.src = e.target.result;
+                imagePreviewContainer.style.display = 'block';  // Show the preview
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,123 @@
+{% extends 'boards/base.html' %}
+{% block title %}Search{% endblock %}
+
+{% block css %}
+<style>
+    /* General Reset */
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f8f9fa;
+    }
+
+    /* Masonry container */
+    .masonry {
+        column-count: 4; /* Default for large screens */
+        column-gap: 18px;
+    }
+
+    .masonry-item {
+        break-inside: avoid;
+        margin-bottom: 18px;
+    }
+
+    .masonry-item a {
+        display: block;
+        width: 100%;
+    }
+
+    .masonry-item img {
+        width: 100%;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    }
+
+    .masonry-item img:hover {
+        transform: scale(1.05);
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .masonry {
+            column-count: 3; /* Medium screens */
+        }
+    }
+
+    @media (max-width: 768px) {
+        .masonry {
+            column-count: 2; /* Tablets */
+        }
+    }
+
+    @media (max-width: 576px) {
+        .masonry {
+            column-count: 1; /* Single column for small screens */
+        }
+    }
+
+    /* Back Button */
+    .back-btn-container {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 1000;
+        margin: 20px;
+        width: fit-content;
+    }
+
+    .back-btn {
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 24px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(4px);
+    }
+
+    .back-btn:hover {
+        background: rgba(0, 0, 0, 1);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="back-btn mt-3">
+    <i class="fa-solid fa-arrow-left"></i>
+</div>
+
+
+<div class="container mt-5">
+    {% if query %}
+        <p>Results for: <strong>{{ query }}</strong></p>
+    {% elif category %}
+        <p>Category: <strong>{{ category }}</strong></p>
+    {% endif %}
+
+    <!-- Display Pins -->
+    <div class="masonry">
+        {% for pin in pins %}
+        <div class="masonry-item">
+            <a href="{% url 'pin-view' image_id=pin.image_id %}">
+                <img src="{{ pin.image.url }}" alt="{{ pin.title }}">
+            </a>
+        </div>
+        {% empty %}
+        <h1 style="text-align: center;">No results found.</h1>
+        {% endfor %}
+    </div>
+</div>
+<script>
+    document.querySelector('.back-btn').addEventListener('click', () => {
+        window.history.back(); //to return to the prev page
+    });
+</script>
+{% endblock %}

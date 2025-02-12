@@ -1,0 +1,679 @@
+{% extends 'boards/base.html' %}
+
+{% block title %}{{ pin.title }}{% endblock %}
+
+{% block css %}
+<style>
+    /* Modern Color Scheme */
+    :root {
+        --primary: #e60023;
+        --secondary: #efefef;
+        --background: #f8f9fa;
+        --text: #333333;
+    }
+
+    body {
+        background-color: var(--background);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    .pin-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        transition: transform 0.3s ease;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        position: relative;
+    }
+
+    @media (max-width: 768px) {
+        .pin-container {
+            grid-template-columns: 1fr;
+            margin: 1rem;
+        }
+    }
+
+    .pin-image-container {
+        padding: 2rem;
+        background: var(--secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .pin-image {
+        width: 100%;
+        height: auto;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .pin-image:hover {
+        transform: scale(1.02);
+    }
+
+    .pin-details-container {
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .pin-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: var(--text);
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .pin-description {
+        font-size: 1.1rem;
+        color: #666;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .pin-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+        color: #777;
+    }
+
+    .pin-meta strong {
+        color: var(--text);
+    }
+
+    /* Action Menu */
+    .action-menu {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        z-index: 10;
+    }
+
+    .menu-toggle {
+        background: rgba(0, 0, 0, 0.05);
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .menu-toggle:hover {
+        background: rgba(0, 0, 0, 0.1);
+    }
+
+    .menu-dropdown {
+        position: absolute;
+        right: 0;
+        top: 50px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        min-width: 180px;
+        overflow: hidden;
+        display: none;
+    }
+
+    .menu-dropdown.show {
+        display: block;
+    }
+
+    .menu-item {
+        padding: 1rem;
+        color: #444;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        transition: all 0.2s ease;
+        background: none;
+        border: none;
+        width: 100%;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .menu-item:hover {
+        background: #f8f8f8;
+        color: var(--primary);
+    }
+
+    /* Enhanced Buttons */
+    .button-container {
+        display: flex;
+        gap: 1rem;
+        margin-top: auto;
+    }
+
+    .like-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        border-radius: 24px;
+        border: none;
+        background: rgba(0, 0, 0, 0.05);
+        color: #666;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .like-btn.liked {
+        background: rgba(230, 0, 35, 0.1);
+        color: var(--primary);
+    }
+
+    .like-btn i {
+        transition: transform 0.2s ease;
+    }
+
+    .like-btn.liked i {
+        animation: bounce 0.4s ease;
+    }
+
+    .save-btn {
+        background: linear-gradient(135deg, var(--primary), #cc001f);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 24px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-left: auto;
+    }
+
+    .save-btn.saved {
+        background: linear-gradient(135deg, #25d366, #00b248);
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.2); }
+    }
+
+    .toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    z-index: 1000;
+}
+
+.toast.error {
+    background: #e60023;
+}
+
+    /* Masonry Layout Improvements */
+    .masonry {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Automatically adjust columns */
+        gap: 18px; /* Space between columns */
+        }
+    
+       .masonry-item {
+        display: block; /* Ensure items are block-level */
+        width: 100%; /* Ensure items fill the container */
+       }
+    
+       .masonry-item img {
+        width: 100%; /* Ensure images fill their container */
+        border-radius: 8px;
+        display: block;
+        object-fit: cover; /* Maintain aspect ratio */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+    
+        .masonry-item img:hover {
+        transform: scale(1.05); /* Hover effect */
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3); /* Add a stronger shadow on hover */
+        }
+
+        .back-btn-container {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            margin: 20px;
+            width: fit-content;
+        }
+    
+        .back-btn {
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 24px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(4px);
+        }
+    
+        .back-btn:hover {
+            background: rgba(0, 0, 0, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+        /* Update save button transition */
+        .save-btn {
+            transition: all 0.2s ease, background 0.3s ease !important;
+        }
+
+
+       
+    
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            width: 90%;
+            max-width: 350px;
+            transition: all 0.3s ease-in-out;
+        }
+        .modal.hide {
+            display: none;
+        }
+    
+        .modal.show {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+    
+        .modal-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+    
+        .modal-text {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+    
+        .modal-label {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+    
+        .modal-content select, 
+        .modal-content textarea {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            margin-bottom: 0.8rem;
+        }
+    
+        .modal-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+        }
+    
+        .cancel-btn, .submit-btn {
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+    
+        .cancel-btn {
+            background: #ddd;
+            color: #333;
+        }
+    
+        .submit-btn {
+            background: var(--primary);
+            color: white;
+        }
+    
+        /* Fade-in Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -45%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+</style>
+{% endblock %}
+
+{% block body %}
+
+
+<div class="back-btn mt-3">
+    <i class="fa-solid fa-arrow-left"></i>
+</div>
+
+
+<div class="pin-container">
+
+    <!-- Action Menu -->
+    <!-- <div class="action-menu">
+        <button class="menu-toggle">
+            <i class="fa-solid fa-ellipsis"></i>
+        </button>
+        <div class="menu-dropdown">
+            <button class="menu-item" onclick="handleReport()">
+                <i class="fa-solid fa-flag"></i>
+                Report Pin
+            </button>
+        </div>
+    </div> -->
+
+
+    <!-- Report Modal -->
+<div id="reportModal" class="modal">
+    <div class="modal-content">
+        <h3 class="modal-title">Report Pin</h3>
+        <p class="modal-text">Let us know why you're reporting this pin.</p>
+
+        <label for="reportReason" class="modal-label">Reason:</label>
+        <select id="reportReason">
+            <option value="spam">Spam or misleading</option>
+            <option value="nudity">Nudity or sexual content</option>
+            <option value="violence">Violence or abusive content</option>
+            <option value="hate_speech">Hate speech or harassment</option>
+            <option value="plagiarism">Plagiarism or copyright issue</option>
+            <option value="other">Other</option>
+        </select>
+
+        <textarea id="reportDescription" placeholder="Additional details (optional)"></textarea>
+
+        <div class="modal-buttons">
+            <button class="cancel-btn" onclick="closeReportModal()">Cancel</button>
+            <button class="submit-btn" onclick="submitReport()">Submit</button>
+        </div>
+    </div>
+</div>
+
+<!-- Action Menu -->
+<div class="action-menu">
+    <button class="menu-toggle">
+        <i class="fa-solid fa-ellipsis"></i>
+    </button>
+    <div class="menu-dropdown">
+        <button class="menu-item" onclick="openReportModal()">
+            <i class="fa-solid fa-flag"></i>
+            Report Pin
+        </button>
+    </div>
+</div>
+   
+
+    <!-- Image Section -->
+    <div class="pin-image-container">
+        <img src="{{ pin.image.url }}" alt="{{ pin.title }}" class="pin-image">
+    </div>
+
+    <!-- Details Section -->
+    <div class="pin-details-container">
+        <h1 class="pin-title">{{ pin.title }}</h1>
+        
+        {% if pin.desc %}
+        <p class="pin-description">{{ pin.desc }}</p>
+        {% endif %}
+
+        <div class="pin-meta">
+            <div><strong>Category:</strong> {{ pin.category }}</div>
+            <div><strong>Posted:</strong> {{ pin.pub_date|date:"M j, Y" }}</div>
+            <div>
+                <strong>By:</strong> 
+                <a href="{% url 'user-profile' username=pin.author.username %}" class="user-link">
+                    @{{ pin.author.username }}
+                </a>
+            </div>
+        </div>
+
+        <div class="button-container">
+            <button class="like-btn {% if is_liked %}liked{% endif %}" data-image-id="{{ pin.image_id }}">
+                <i class="fa-solid fa-heart"></i>
+                <span id="like-count-{{ pin.image_id }}">{{ pin.like_count }}</span>
+            </button>
+            
+            <button class="save-btn {% if is_saved %}saved{% endif %}" id="save-btn" data-image-id="{{ pin.image_id }}">
+                {% if is_saved %}Saved{% else %}Save{% endif %}
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Related Pins Section -->
+<div class="related-pins">
+    <h2 class="section-title">More like this</h2>
+    <div class="masonry">
+        {% for image in related_pins %}
+        <div class="masonry-item">
+            <a href="{% url 'pin-view' image_id=image.image_id %}">
+                <img src="{{ image.image.url }}" alt="{{ image.title }}">
+            </a>
+        </div>
+        {% empty %}
+        <p class="empty-state">No related pins found</p>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    // Menu Toggle
+    const menuToggle = document.querySelector('.menu-toggle');
+    const menuDropdown = document.querySelector('.menu-dropdown');
+
+    menuToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        menuDropdown.classList.toggle('show');
+    });
+
+    document.addEventListener('click', () => {
+        menuDropdown.classList.remove('show');
+    });
+
+    // Report Handler
+    function handleReport() {
+        if (confirm('Are you sure you want to report this pin?')) {
+            fetch(`/report-pin/{{ pin.image_id }}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Report submitted successfully');
+                }
+            })
+            .catch(error => {
+                showToast('Error submitting report', 'error');
+            });
+        }
+    }
+
+    // Toast Notification
+    
+
+        document.querySelectorAll('.like-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                
+               // if (!{{ user.is_authenticated|yesno:"true,false" }}) {
+                //    window.location.href = "{% url 'login-page' %}";
+                 //   return;
+              //  }
+                
+                
+    
+                const imageId = this.getAttribute('data-image-id');
+                fetch(`/boards/toggle-like/${imageId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then(response => {
+
+                    if (!response.ok) {
+                        return response.text().then(text => { 
+                            throw new Error(`Error: ${response.status} - ${text}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const likeCountElement = document.getElementById(`like-count-${imageId}`);
+                    likeCountElement.textContent = data.like_count;
+        
+                    // toggling class when like btn os clicked
+                    if (data.status === 'liked') {
+                        this.classList.add('liked');
+                    } else if (data.status === 'disliked') {
+                        this.classList.remove('liked');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        });
+    
+    
+        document.querySelector('.save-btn').addEventListener('click', function(event) {
+            event.preventDefault();  
+        
+            const image_id = document.querySelector('.save-btn').getAttribute('data-image-id');  // Get the image ID from the button
+            const btn = this;
+            fetch(`/boards/save/${image_id}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => {
+                if (!response.ok) {
+                    console.log('Error');
+                    return;
+                }
+                return response.json();  // Parse the JSON response
+            })
+            .then(data => {
+               btn.classList.toggle('saved', data.saved); //data.saved = true if saved class is added , data.saved= false if saved class is removed
+               btn.innerHTML = data.saved ? "Saved" : "Save";
+            })
+            .catch(error => {
+                console.log('Error:', error);  // Handle errors
+            });
+        });
+
+        document.querySelector('.back-btn').addEventListener('click', () => {
+            window.history.back(); //to return to the prev page
+        });
+
+
+
+
+        //JS for report
+        function openReportModal() {
+            const modal = document.getElementById("reportModal");
+            if (modal) {
+                modal.style.display = "block"; // Ensure modal is visible
+                modal.classList.add("show");
+            }
+        }
+        
+    
+        // Close Report Modal
+        function closeReportModal() {
+            const modal = document.getElementById("reportModal");
+            if (modal) {
+                modal.classList.remove("show"); // Remove the 'show' class
+                modal.style.display = "none"; // Hide the modal
+            }
+        }
+        
+    
+        // Submit Report
+        function submitReport() {
+            const reason = document.getElementById("reportReason").value;
+            const description = document.getElementById("reportDescription").value;
+        
+            fetch(`/boards/report-pin/{{ pin.image_id }}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}", // Ensure CSRF token is sent
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ reason: reason, description: description }) // Ensure proper JSON format
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(errorData => {
+                        throw new Error(errorData.message || "Something went wrong.");
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    showToast("Report submitted successfully.");
+                    closeReportModal(); // Close modal after successful report
+                }
+            })
+            .catch(error => {
+                console.error("Report Submission Error:", error);
+                showToast(error.message, "error"); // Show error message from server
+            });
+        }
+        
+
+        function showToast(message, type = "success") {
+            // Create a toast element
+            const toast = document.createElement("div");
+            toast.className = `toast ${type}`;
+            toast.innerText = message;
+        
+            // Add toast to the body
+            document.body.appendChild(toast);
+        
+            // Remove toast after 3 seconds
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+        
+        
+</script>
+{% endblock %}

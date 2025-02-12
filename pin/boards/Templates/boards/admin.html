@@ -1,0 +1,107 @@
+{% extends 'boards/base.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block css %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f8f9fa;
+    }
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 20px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .stats-box {
+        background: #f1f1f1;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+        margin-bottom: 15px;
+        font-size: 18px;
+    }
+    .stats-box h3 {
+        margin: 0;
+        font-size: 24px;
+        color: #333;
+    }
+    .table-container {
+        margin-top: 20px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+    th, td {
+        padding: 10px;
+        border: 1px solid #ddd;
+        text-align: left;
+    }
+    th {
+        background-color: #007bff;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <h1>Admin Dashboard</h1>
+
+    <div class="dashboard-container">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stats-box">
+                    <h3>{{ total_users }}</h3>
+                    <p>Total Users</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-box">
+                    <h3>{{ total_pins }}</h3>
+                    <p>Total Pins</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-box">
+                    <h3>{{ total_reports }}</h3>
+                    <p>Total Reports</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-box">
+                    <h3>{{ pending_reports }}</h3>
+                    <p>Pending Reports</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <h2>Recent Reports</h2>
+            <table>
+                <tr>
+                    <th>Reporter</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+                {% for report in recent_reports %}
+                <tr>
+                    <td>{{ report.reporter.username }}</td>
+                    <td>{{ report.reason }}</td>
+                    <td>{{ report.status }}</td>
+                    <td><a href="{% url 'review-report' report.id %}" class="btn btn-primary btn-sm">Review</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4">No reports found</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

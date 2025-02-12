@@ -1,0 +1,226 @@
+{% extends 'boards/base.html' %}
+{% block title %}User Profile{% endblock %}
+{% block css %}
+<style>
+    body {
+        font-family: 'Poppins', sans-serif;
+        background: #fafafa;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        max-width: 900px;
+        margin: auto;
+        padding: 20px;
+    }
+
+    .profile-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 30px 0;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .profile-header img {
+        height: 120px;
+        width: 120px;
+        border-radius: 50%;
+        border: 3px solid #ddd;
+        object-fit: cover;
+    }
+
+    .profile-info {
+        flex-grow: 1;
+        margin-left: 20px;
+    }
+
+    .profile-info h3 {
+        font-size: 1.8rem;
+        margin: 5px 0;
+    }
+
+    .profile-stats {
+        display: flex;
+        gap: 20px;
+        font-size: 1rem;
+    }
+
+    .profile-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .profile-actions button {
+        border: none;
+        padding: 8px 12px;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        background: #0056b3;
+    }
+
+    .follow-btn {
+        background: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 30px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+    .follow-btn:hover {
+        background: #0056b3;
+    }
+
+    .tab-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 20px;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 10px;
+    }
+
+    .tab-buttons button {
+        background: none;
+        border: none;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        padding: 10px;
+    }
+
+    .tab-buttons .active {
+        border-bottom: 2px solid black;
+    }
+
+    .masonry {
+        column-count: 3;
+        column-gap: 10px;
+        padding-top: 20px;
+    }
+
+    .masonry-item {
+        break-inside: avoid;
+        margin-bottom: 10px;
+        position: relative;
+    }
+
+    .masonry-item img {
+        width: 100%;
+        border-radius: 10px;
+        transition: 0.3s ease-in-out;
+    }
+
+    .masonry-item img:hover {
+        transform: scale(1.05);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .masonry {
+            column-count: 2;
+        }
+        .profile-header {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .profile-info {
+            margin-left: 0;
+            margin-top: 10px;
+        }
+        .profile-stats {
+            flex-direction: column;
+            gap: 5px;
+        }
+        .profile-actions {
+            margin-top: 10px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .masonry {
+            column-count: 1;
+        }
+        .profile-header {
+            padding: 20px 0;
+        }
+        .profile-info h3 {
+            font-size: 1.5rem;
+        }
+        .profile-stats {
+            font-size: 0.9rem;
+        }
+        .tab-buttons button {
+            font-size: 0.9rem;
+            padding: 8px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    {% load static %}
+    <div class="profile-header">
+        <img src="{% if user.profile.profile_pic %}{{ user.profile.profile_pic.url }}{% else %}{% static 'boards/profile_pics/user_logo.jpeg' %}{% endif %}" alt="User Image">
+        <div class="profile-info">
+            <h3>{{ user.username }}</h3>
+            <div class="profile-stats">
+                <div><strong>{{ user.profile.post_count }}</strong> Posts</div>
+                <div class="f"><strong>{{ user.profile.follower_count }}</strong> Followers</div>
+                <div><strong>{{ user.profile.follow_count }}</strong> Following</div>
+            </div>
+        </div>
+        <div class="profile-actions">
+            {% if request.user != user %}
+            <button id="follow-btn" class="follow-btn">
+                {% if request.user in user.profile.followers.all %}Unfollow{% else %}Follow{% endif %}
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="tab-buttons">
+        <button id="uploaded-pins-btn" class="active">Posts</button>
+    </div>
+
+    <div id="uploaded-pins" class="pins-section" style="display: block;">
+        <div class="masonry">
+            {% for pin in user.image_set.all %}
+            <div class="masonry-item">
+                <a href="{% url 'pin-view' image_id=pin.image_id %}">
+                    <img src="{{ pin.image.url }}" alt="{{ pin.img_title }}">
+                </a>
+            </div>
+            {% empty %}
+            <p>No posts yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('follow-btn')?.addEventListener('click', function () {
+        const btn = this;
+        fetch("{% url 'toggle_follow' user.username %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            btn.textContent = data.is_following ? 'Unfollow' : 'Follow';
+            document.querySelector('.f strong').textContent = data.follower_count;
+        })
+        .catch(error => console.error('Error:', error));
+    });
+</script>
+
+{% endblock %}

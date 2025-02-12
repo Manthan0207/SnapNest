@@ -1,0 +1,280 @@
+{% extends 'boards/base.html' %}
+{% load static %}
+
+{% block title %}{{ image.img_title }} Analytics{% endblock %}
+
+{% block css %}
+<link href="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.css" rel="stylesheet">
+<style>
+    :root {
+        --primary-color: #6366f1;
+        --secondary-color: #f8fafc;
+        --accent-color: #f59e0b;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+    }
+
+    .analytics-container {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+
+    .analytics-card {
+        background: white;
+        border-radius: 1.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+        overflow: hidden;
+    }
+
+    .analytics-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .image-preview {
+        height: 400px;
+        position: relative;
+        background: var(--secondary-color);
+    }
+
+    .image-preview img {
+        object-fit: contain;
+        padding: 1.5rem;
+    }
+
+    .image-meta {
+        padding: 2rem;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .chart-wrapper {
+        padding: 2rem;
+        position: relative;
+    }
+
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .chart-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .chart-legend {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .legend-color {
+        width: 1rem;
+        height: 1rem;
+        border-radius: 0.25rem;
+    }
+
+    @media (max-width: 768px) {
+        .image-preview {
+            height: 300px;
+        }
+
+        .chart-wrapper {
+            padding: 1rem;
+        }
+
+        .chart-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+    }
+
+    .back-btn-container {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 1000;
+        margin: 20px;
+        width: fit-content;
+    }
+
+    .back-btn {
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 24px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(4px);
+    }
+
+    .back-btn:hover {
+        background: rgba(0, 0, 0, 1);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+
+<div class="back-btn mt-3">
+    <i class="fa-solid fa-arrow-left"></i>
+</div>
+
+
+<div class="analytics-container mt-3">
+    <div class="container">
+        <h1 class="text-center mb-5 display-5 fw-bold text-gradient">Analytics for<br>"{{ image.img_title }}"</h1>
+
+        <div class="row g-4">
+            <!-- Image Card -->
+            <div class="col-lg-5">
+                <div class="analytics-card">
+                    <div class="image-preview">
+                        <img src="{{ image.image.url }}" alt="{{ image.img_title }}" class="w-100 h-100">
+                    </div>
+                    <div class="image-meta">
+                        <h3 class="h5 fw-bold mb-3">{{ image.img_title }}</h3>
+                        <p class="text-muted mb-0">{{ image.desc|default:"No description" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Card -->
+            <div class="col-lg-7">
+                <div class="analytics-card h-100">
+                    <div class="chart-wrapper">
+                        <div class="chart-header">
+                            <h2 class="chart-title">Engagement Overview</h2>
+                            <div class="chart-legend">
+                                <div class="legend-item">
+                                    <span class="legend-color" style="background: var(--primary-color)"></span>
+                                    <span class="text-sm">Daily Likes</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-container" style="height: 350px;">
+                            <canvas id="likesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
+
+<script id="graphData" type="application/json">
+    {{ graph_data|safe }}
+</script>
+
+<script>
+    document.querySelector('.back-btn').addEventListener('click' , 
+    ()=> {
+        window.history.back()
+    })
+    // Register the zoom plugin
+    Chart.register(ChartZoom);
+
+    const graphData = JSON.parse(document.getElementById('graphData').textContent);
+    
+    const ctx = document.getElementById('likesChart').getContext('2d');
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: graphData.labels,
+            datasets: [{
+                label: 'Likes',
+                data: graphData.data,
+                borderColor: 'rgba(99, 102, 241, 1)',
+                backgroundColor: 'rgba(99, 102, 241, 0.05)',
+                borderWidth: 2,
+                pointRadius: 4,
+                pointBackgroundColor: 'white',
+                pointBorderWidth: 2,
+                tension: 0.3,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                zoom: {
+                    zoom: {
+                        wheel: { enabled: true },
+                        pinch: { enabled: true },
+                        mode: 'x'
+                    },
+                    pan: { enabled: true }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                    titleFont: { size: 14 },
+                    bodyFont: { size: 14 },
+                    padding: 12,
+                    cornerRadius: 8
+                },
+                legend: { display: false }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    title: {
+                        display: true,
+                        text: 'Date',
+                        color: '#64748b',
+                        font: { size: 14 }
+                    },
+                    ticks: {
+                        color: '#94a3b8',
+                        maxRotation: 0,
+                        autoSkip: true
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Total Likes',
+                        color: '#64748b',
+                        font: { size: 14 }
+                    },
+                    grid: { color: '#e2e8f0' },
+                    ticks: {
+                        color: '#94a3b8',
+                        stepSize: 1,
+                        precision: 0
+                    }
+                }
+            },
+            animation: {
+                duration: 1000,
+                easing: 'easeOutQuart'
+            }
+        }
+    });
+</script>
+{% endblock %}
