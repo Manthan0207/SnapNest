@@ -18,10 +18,9 @@ SnapNest is a comprehensive photo management and sharing platform built with Dja
 - **📱 Responsive Design** - Mobile-first design with Bootstrap 5
 - **🔐 User Authentication** - Django's built-in authentication system
 - **📸 Photo Upload & Management** - Easy drag & drop photo uploads
-- **🗂️ Album Organization** - Create and manage photo albums
 - **👥 User Profiles** - Personalized user profiles and dashboards
 - **🔍 Search Functionality** - Search photos by title, tags, or description
-- **💬 Social Features** - Like, comment, and share photos
+- **💬 Social Features** - Like , Save Images
 - **🎨 Modern UI/UX** - Clean interface with smooth Bootstrap animations
 - **⚡ Fast Performance** - Optimized Django backend with efficient queries
 - **🔒 Security** - CSRF protection, secure file uploads, and user permissions
@@ -48,14 +47,7 @@ SnapNest is a comprehensive photo management and sharing platform built with Dja
 - **virtualenv** - Virtual environment management
 - **Django Debug Toolbar** - Development debugging
 
-## 🚀 Quick Start
 
-### Prerequisites
-
-Make sure you have the following installed:
-- Python 3.8 or higher
-- pip (Python package manager)
-- Git
 
 ### Installation
 
@@ -65,26 +57,26 @@ Make sure you have the following installed:
    cd SnapNest
    ```
 
-5. **Database Setup**
+2. **Database Setup**
    ```bash
 
    python manage.py makemigrations
    python manage.py migrate
    ```
 
-6. **Create Superuser** (Optional)
+3. **Create Superuser** (Optional)
    ```bash
    python manage.py createsuperuser
    ```
 
 
 
-8. **Run the Development Server**
+4. **Run the Development Server**
    ```bash
    python manage.py runserver
    ```
 
-9. **Open your browser**
+5. **Open your browser**
    
    Navigate to `http://127.0.0.1:8000` to see SnapNest in action!
              # Django applications
@@ -116,7 +108,6 @@ if settings.DEBUG:
 - **Grid System** - Responsive photo galleries
 - **Forms** - Styled upload and registration forms
 - **Alerts** - User feedback messages
-- **Pagination** - Photo gallery pagination
 
 ### Custom JavaScript Features
 - **Photo Upload** - Drag & drop with preview
