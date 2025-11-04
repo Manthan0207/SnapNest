@@ -32,7 +32,7 @@ SnapNest is a comprehensive photo management and sharing platform built with Dja
 ### Backend
 - **Python 3.8+** - Programming language
 - **Django 4.0+** - Web framework
-- **SQLite/PostgreSQL** - Database
+- **SQLite** - Database
 
 ### Frontend
 - **HTML5** - Markup language
